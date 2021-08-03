@@ -1,6 +1,5 @@
 // Compound Components
-// http://localhost:3000/isolated/exercise/02.js
-
+// http://localhost:3000/isolated/exercise/02.extra-1js
 import * as React from 'react';
 import {Switch} from '../switch';
 
@@ -9,7 +8,10 @@ function Toggle({children}) {
   const toggle = () => setOn(!on);
 
   return React.Children.map(children, child => {
-    return React.cloneElement(child, {on, toggle});
+    if (allowedTypes.includes(child.type)) {
+      return React.cloneElement(child, {on, toggle});
+    }
+    return child;
   });
 }
 
@@ -22,6 +24,8 @@ const ToggleOff = ({on, children}) => (on ? null : children);
 /** <ToggleButton /> renders the <Switch /> with the on prop set to the on state and the onClick prop set to toggle. */
 const ToggleButton = ({on, toggle}) => <Switch on={on} onClick={toggle} />;
 
+const allowedTypes = [ToggleOn, ToggleOff, ToggleButton];
+
 function App() {
   return (
     <div>
@@ -29,6 +33,7 @@ function App() {
         <ToggleOn>The button is on</ToggleOn>
         <ToggleOff>The button is off</ToggleOff>
         <ToggleButton />
+        <span>I'm a DOM Component!</span>
       </Toggle>
     </div>
   );
