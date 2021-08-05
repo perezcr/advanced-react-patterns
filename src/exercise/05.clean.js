@@ -1,13 +1,8 @@
 // State Reducer
-// http://localhost:3000/isolated/exercise/05.js
+// http://localhost:3000/isolated/exercise/05.clean.js
 
 import * as React from 'react';
 import {Switch} from '../switch';
-
-const callAll =
-  (...fns) =>
-  (...args) =>
-    fns.forEach(fn => fn?.(...args));
 
 const actionTypes = {
   toggle: 'TOGGLE',
@@ -36,28 +31,7 @@ function useToggle({initialOn = false, reducer = toggleReducer} = {}) {
   const toggle = () => dispatch({type: actionTypes.toggle});
   const reset = () => dispatch({type: actionTypes.reset, initialState});
 
-  function getTogglerProps({onClick, ...props} = {}) {
-    return {
-      'aria-pressed': on,
-      onClick: callAll(onClick, toggle),
-      ...props,
-    };
-  }
-
-  function getResetterProps({onClick, ...props} = {}) {
-    return {
-      onClick: callAll(onClick, reset),
-      ...props,
-    };
-  }
-
-  return {
-    on,
-    reset,
-    toggle,
-    getTogglerProps,
-    getResetterProps,
-  };
+  return {on, reset, toggle};
 }
 
 // export {useToggle, toggleReducer, actionTypes};
@@ -68,19 +42,6 @@ function App() {
   const [timesClicked, setTimesClicked] = React.useState(0);
   const clickedTooMuch = timesClicked >= 4;
 
-  /* function toggleStateReducer(state, action) {
-    switch (action.type) {
-      case actionTypes.toggle: {
-        if (clickedTooMuch) {
-          return {on: state.on};
-        }
-        return {on: !state.on};
-      }
-      default:
-        return toggleReducer(state, action);
-    }
-  } */
-  //  I can change the switch statement a bunch, but actually, it'll be a lot easier if I can instead say,
   // "If the action.type is 'toggle' AND I clicked 4 times, then I can return this right here."
   // Otherwise, I'll return the toggleReducer with that state and that action.
   function toggleStateReducer(state, action) {
@@ -90,18 +51,18 @@ function App() {
     return toggleReducer(state, action);
   }
 
-  const {on, getTogglerProps, getResetterProps} = useToggle({
+  const {on, toggle, reset} = useToggle({
     reducer: toggleStateReducer,
   });
 
   return (
     <div>
       <Switch
-        {...getTogglerProps({
-          disabled: clickedTooMuch,
-          on: on,
-          onClick: () => setTimesClicked(count => count + 1),
-        })}
+        onClick={() => {
+          toggle();
+          setTimesClicked(count => count + 1);
+        }}
+        on={on}
       />
       {clickedTooMuch ? (
         <div data-testid="notice">
@@ -111,7 +72,12 @@ function App() {
       ) : timesClicked > 0 ? (
         <div data-testid="click-count">Click count: {timesClicked}</div>
       ) : null}
-      <button {...getResetterProps({onClick: () => setTimesClicked(0)})}>
+      <button
+        onClick={() => {
+          reset();
+          setTimesClicked(0);
+        }}
+      >
         Reset
       </button>
     </div>
