@@ -1,13 +1,8 @@
 // Control Props
-// http://localhost:3000/isolated/exercise/06.js
+// http://localhost:3000/isolated/exercise/06.clean.js
 
 import * as React from 'react';
 import {Switch} from '../switch';
-
-const callAll =
-  (...fns) =>
-  (...args) =>
-    fns.forEach(fn => fn?.(...args));
 
 const actionTypes = {
   toggle: 'toggle',
@@ -37,16 +32,14 @@ function useToggle({
   const {current: initialState} = React.useRef({on: initialOn});
   const [state, dispatch] = React.useReducer(reducer, initialState);
 
-  const onIsControlled = controlledOn != null;
-  const on = onIsControlled ? controlledOn : state.on;
+  const isControlled = controlledOn != null;
+  const on = isControlled ? controlledOn : state.on;
 
-  // We want to call `onChange` any time we need to make a state change, but we
-  // only want to call `dispatch` if `!onIsControlled` (otherwise we could get
-  // unnecessary renders).
   function dispatchWithOnChange(action) {
-    if (!onIsControlled) {
+    if (!isControlled) {
       dispatch(action);
     }
+    // onChange only is executed it's provided
     onChange?.(reducer({...state, on}, action), action);
   }
 
@@ -54,34 +47,17 @@ function useToggle({
   const reset = () =>
     dispatchWithOnChange({type: actionTypes.reset, initialState});
 
-  function getTogglerProps({onClick, ...props} = {}) {
-    return {
-      'aria-pressed': on,
-      onClick: callAll(onClick, toggle),
-      ...props,
-    };
-  }
-
-  function getResetterProps({onClick, ...props} = {}) {
-    return {
-      onClick: callAll(onClick, reset),
-      ...props,
-    };
-  }
-
   return {
     on,
     reset,
     toggle,
-    getTogglerProps,
-    getResetterProps,
   };
 }
 
 function Toggle({on: controlledOn, onChange}) {
-  const {on, getTogglerProps} = useToggle({on: controlledOn, onChange});
-  const props = getTogglerProps({on});
-  return <Switch {...props} />;
+  const {on, toggle} = useToggle({on: controlledOn, onChange});
+
+  return <Switch onClick={toggle} on={on} />;
 }
 
 function App() {
@@ -119,11 +95,7 @@ function App() {
       <hr />
       <div>
         <div>Uncontrolled Toggle:</div>
-        <Toggle
-          onChange={(...args) =>
-            console.info('Uncontrolled Toggle onChange', ...args)
-          }
-        />
+        <Toggle />
       </div>
     </div>
   );
