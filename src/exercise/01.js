@@ -82,7 +82,7 @@ async function updateUser(dispatch, user, updates) {
     return updatedUser;
   } catch (error) {
     dispatch({type: 'fail update', error});
-    throw error;
+    return Promise.reject(error);
   }
 }
 
@@ -107,7 +107,9 @@ function UserSettings() {
   function handleSubmit(event) {
     event.preventDefault();
     // Remove logic and move it into one of these context of module functions, so you can simplify the code for the user of context
-    updateUser(userDispatch, user, formState);
+    updateUser(userDispatch, user, formState).catch(() => {
+      /* ignore the error */
+    });
   }
 
   return (
